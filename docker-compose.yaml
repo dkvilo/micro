@@ -1,0 +1,35 @@
+version: "3"
+
+services: 
+  
+  micro:
+    restart: unless-stopped
+    build: ./service
+    ports:
+      - "8080:8080"
+    logging:
+      driver: "json-file"
+      options: 
+        max-size: "100MB"
+        max-file: "3"
+    networks:
+      - sunset
+
+  envoy:
+    image: envoyproxy/envoy:v1.17-latest
+    environment: 
+      - "ENVOY_UID=0"
+    ports:
+      - "80:80"
+    depends_on: 
+      - micro
+    links: 
+      - micro
+    volumes:
+      - ./envoy.yaml:/etc/envoy/envoy.yaml
+    networks:
+      - sunset
+
+networks: 
+  sunset:
+    driver: bridge
